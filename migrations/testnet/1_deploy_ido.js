@@ -8,6 +8,9 @@ const web3 = new Web3(
   new Web3.providers.HttpProvider("https://bsc-dataseed.binance.org")
 );
 
+const CURRENT_BLOCK_NUMBER = 693758;
+const CURRENT_BLOCK_TIME = "May-19-2021 14:30:37";
+
 module.exports = async function(deployer, a) {
   await deployer.deploy(
     MockORC20,
@@ -20,6 +23,8 @@ module.exports = async function(deployer, a) {
   await deployer.deploy(MockORC20, "Cat Token", "Cat", numToHex(200 * 1e18));
   const catToken = await MockORC20.deployed();
 
+  let beginTime = "2021-05-19T14:10:00+08:00";
+  let endTime = "2021-05-19T14:20:00+08:00";
   let offeringAmount = 200;
   let raisingUSD = 40;
   let raisingTokenPrice = 1;
@@ -41,14 +46,14 @@ module.exports = async function(deployer, a) {
   const proxyAdmin = "0x5cae3a434C9501fbe0a2E0b739A45F54fCF3Daf7";
   const ifoAdmin = "0x5cae3a434C9501fbe0a2E0b739A45F54fCF3Daf7";
   const startBlock = getBlockFromTime(
-    "2021-05-19T13:30:00+08:00",
-    691575,
-    "May-19-2021 12:41:28"
+    beginTime,
+    CURRENT_BLOCK_NUMBER,
+    CURRENT_BLOCK_TIME
   );
   const endBlock = getBlockFromTime(
-    "2021-05-19T13:45:00+08:00",
-    691575,
-    "May-19-2021 12:41:28"
+    endTime,
+    CURRENT_BLOCK_NUMBER,
+    CURRENT_BLOCK_TIME
   );
 
   offeringAmount = numToHex(offeringAmount * Math.pow(10, 18));
