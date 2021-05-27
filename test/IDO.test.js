@@ -1,5 +1,6 @@
 const { expectRevert, time } = require("@openzeppelin/test-helpers");
 const MockORC20 = artifacts.require("MockORC20");
+const MockUserProfile = artifacts.require("MockUserProfile");
 const IDO = artifacts.require("IDOImpl");
 
 contract("IDO", ([alice, bob, carol, dev, minter]) => {
@@ -17,6 +18,7 @@ contract("IDO", ([alice, bob, carol, dev, minter]) => {
   });
 
   it("raise not enough lp", async () => {
+    const userProfile = await MockUserProfile.new({ from: minter });
     // 10 lp raising, 100 ido to offer
     this.ido = await IDO.new({ from: minter });
     await this.ido.initialize(
@@ -27,6 +29,7 @@ contract("IDO", ([alice, bob, carol, dev, minter]) => {
       "100",
       "10",
       "1",
+      userProfile.address,
       dev
     );
     await this.idoToken.transfer(this.ido.address, "100", { from: minter });
@@ -65,6 +68,7 @@ contract("IDO", ([alice, bob, carol, dev, minter]) => {
   });
 
   it("raise enough++ lp", async () => {
+    const userProfile = await MockUserProfile.new({ from: minter });
     // 10 lp raising, 100 ido to offer
     this.ido = await IDO.new({ from: minter });
     await this.ido.initialize(
@@ -75,6 +79,7 @@ contract("IDO", ([alice, bob, carol, dev, minter]) => {
       "100",
       "10",
       "1",
+      userProfile.address,
       dev
     );
     await this.idoToken.transfer(this.ido.address, "100", { from: minter });
@@ -126,8 +131,8 @@ contract("IDO", ([alice, bob, carol, dev, minter]) => {
   });
 
   it("raise enough lp", async () => {
+    const userProfile = await MockUserProfile.new({ from: minter });
     // 10 lp raising, 100 ido to offer
-
     this.ido = await IDO.new({ from: minter });
     await this.ido.initialize(
       this.lp.address,
@@ -137,6 +142,7 @@ contract("IDO", ([alice, bob, carol, dev, minter]) => {
       "18",
       "18",
       "1",
+      userProfile.address,
       alice
     );
     await this.idoToken.transfer(this.ido.address, "100", { from: minter });
@@ -184,5 +190,35 @@ contract("IDO", ([alice, bob, carol, dev, minter]) => {
     assert.equal((await this.ido.hasHarvest(carol)).toString(), "true");
     assert.equal((await this.ido.hasHarvest(bob)).toString(), "false");
     assert.equal((await this.ido.getAddressListLength()).toString(), "3");
+  });
+
+  it("require avatar", async () => {
+    const userProfile = await MockUserProfile.new({ from: minter });
+    // 10 lp raising, 100 ido to offer
+    this.ido = await IDO.new({ from: minter });
+    await this.ido.initialize(
+      this.lp.address,
+      this.idoToken.address,
+      "2000",
+      "2020",
+      "100",
+      "10",
+      "1",
+      userProfile.address,
+      dev
+    );
+
+    await this.idoToken.transfer(this.ido.address, "100", { from: minter });
+    await this.lp.approve(this.ido.address, "1000", { from: alice });
+
+    await time.advanceBlockTo("2000");
+    await userProfile.setAvatar(false);
+    await expectRevert(this.ido.deposit("1", { from: alice }), "no avatar");
+
+    await userProfile.setAvatar(true);
+    await this.ido.deposit("1", { from: alice });
+    assert.equal((await this.ido.totalAmount()).toString(), "1");
+    assert.equal((await this.lp.balanceOf(alice)).toString(), "9");
+    assert.equal((await this.lp.balanceOf(this.ido.address)).toString(), "1");
   });
 });

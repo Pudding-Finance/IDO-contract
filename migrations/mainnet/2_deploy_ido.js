@@ -7,32 +7,26 @@ const web3 = new Web3(
   new Web3.providers.HttpProvider("https://bsc-dataseed.binance.org")
 );
 
-const PUD_HOO = "0x593de6673ad09b69103f5b95175cddd05f6880b3";
-
 const CURRENT_BLOCK_NUMBER = 548824;
 const CURRENT_BLOCK_TIME = "May-19-2021 13:59:02";
 
 module.exports = async function(deployer, a) {
   let beginTime = "2021-05-19T14:10:00+08:00";
   let endTime = "2021-05-19T14:20:00+08:00";
-  let offeringAmount = 200;
-  let raisingUSD = 40;
+
+  let offeringAmount = 320000;
+  let raisingUSD = 40000;
   let raisingTokenPrice = 1;
   let raisingAmount = formatDecimals(raisingUSD / raisingTokenPrice, 10);
   let minAmount = 1;
-
-  // let offeringAmount = 200;
-  // let raisingUSD = 40;
-  // let raisingTokenPrice = 1;
-  // let raisingAmount = formatDecimals(raisingUSD / raisingTokenPrice, 10);
-  // let minAmount = 1;
-  // CONFIG: lpToken  pud-hoo
-  const lpToken = '0xbE8D16084841875a1f398E6C3eC00bBfcbFa571b';
+  // CONFIG: token usdt
+  const token = '0xD16bAbe52980554520F6Da505dF4d1b124c815a7';
   // CONFIG: offeringToken xxx
   const offeringToken = "0xD16bAbe52980554520F6Da505dF4d1b124c815a7";
 
   const proxyAdmin = "0x5cae3a434C9501fbe0a2E0b739A45F54fCF3Daf7";
   const ifoAdmin = "0x5cae3a434C9501fbe0a2E0b739A45F54fCF3Daf7";
+  const userProfileAddress = "0xC9866C73518e4696fa7Fc50f68462ADa0EEEDC0f"
 
   const startBlock = getBlockFromTime(
     beginTime,
@@ -61,7 +55,7 @@ module.exports = async function(deployer, a) {
       inputs: [
         {
           internalType: "contract IORC20",
-          name: "_lpToken",
+          name: "_token",
           type: "address"
         },
         {
@@ -106,13 +100,14 @@ module.exports = async function(deployer, a) {
       type: "function"
     },
     [
-      lpToken,
+      token,
       offeringToken,
       startBlock,
       endBlock,
       offeringAmount,
       raisingAmount,
       minAmount,
+      userProfileAddress,
       adminAddress
     ]
   );

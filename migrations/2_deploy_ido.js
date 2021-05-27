@@ -34,10 +34,11 @@ module.exports = async function(deployer, a) {
   await deployer.deploy(MockORC20, "Yunge Protocol", "YUNGE", offeringAmount);
   const issuedToken = await MockORC20.deployed();
 
-  const lpToken = ticketToken.address;
+  const token = ticketToken.address;
   const offeringToken = issuedToken.address;
   const proxyAdmin = "0x5cae3a434C9501fbe0a2E0b739A45F54fCF3Daf7";
   const ifoAdmin = "0x5cae3a434C9501fbe0a2E0b739A45F54fCF3Daf7";
+  const userProfileAddress = "0xC9866C73518e4696fa7Fc50f68462ADa0EEEDC0f"
   const startBlock = getBlockFromTime(
     beginTime,
     CURRENT_BLOCK_NUMBER,
@@ -61,7 +62,7 @@ module.exports = async function(deployer, a) {
       inputs: [
         {
           internalType: "contract IORC20",
-          name: "_lpToken",
+          name: "_token",
           type: "address"
         },
         {
@@ -106,13 +107,14 @@ module.exports = async function(deployer, a) {
       type: "function"
     },
     [
-      lpToken,
+      token,
       offeringToken,
       startBlock,
       endBlock,
       offeringAmount,
       raisingAmount,
       minAmount,
+      userProfileAddress,
       adminAddress
     ]
   );

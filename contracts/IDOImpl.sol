@@ -6,6 +6,10 @@ import "./libs/token/ORC20/SafeORC20.sol";
 import "./libs/utils/ReentrancyGuard.sol";
 import "./libs/proxy/Initializable.sol";
 
+interface UserProfile {
+  function hasAvatar(address _address) external view returns (bool);
+}
+
 contract IDOImpl is ReentrancyGuard, Initializable {
     using SafeMath for uint256;
     using SafeORC20 for IORC20;
@@ -22,10 +26,12 @@ contract IDOImpl is ReentrancyGuard, Initializable {
         uint256 amount;
     }
 
+    // profile contract address
+    UserProfile public userProfile;
     // admin address
     address public adminAddress;
     // The raising token
-    IORC20 public lpToken;
+    IORC20 public token;
     // The offering token
     IORC20 public offeringToken;
     // The block number when IFO starts
@@ -58,16 +64,17 @@ contract IDOImpl is ReentrancyGuard, Initializable {
     constructor() public {}
 
     function initialize(
-        IORC20 _lpToken,
+        IORC20 _token,
         IORC20 _offeringToken,
         uint256 _startBlock,
         uint256 _endBlock,
         uint256 _offeringAmount,
         uint256 _raisingAmount,
         uint256 _minAmount,
+        UserProfile _userProfile,
         address _adminAddress
     ) public initializer {
-        lpToken = _lpToken;
+        token = _token;
         offeringToken = _offeringToken;
         startBlock = _startBlock;
         endBlock = _endBlock;
@@ -75,6 +82,7 @@ contract IDOImpl is ReentrancyGuard, Initializable {
         raisingAmount = _raisingAmount;
         totalAmount = 0;
         minAmount = _minAmount;
+        userProfile = _userProfile;
         adminAddress = _adminAddress;
     }
 
@@ -104,8 +112,9 @@ contract IDOImpl is ReentrancyGuard, Initializable {
         );
         require(_amount > 0, "need _amount > 0");
         require(_amount >= minAmount, "_amount < minAmoun");
+        require(userProfile.hasAvatar(msg.sender), "no avatar");
 
-        lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
+        token.safeTransferFrom(address(msg.sender), address(this), _amount);
         if (userInfo[msg.sender].amount == 0) {
             addressList.push(address(msg.sender));
         }
@@ -134,7 +143,7 @@ contract IDOImpl is ReentrancyGuard, Initializable {
             );
         }
         if (refundingTokenAmount > 0) {
-            lpToken.safeTransfer(address(msg.sender), refundingTokenAmount);
+            token.safeTransfer(address(msg.sender), refundingTokenAmount);
         }
 
         emit Harvest(msg.sender, offeringTokenAmount, refundingTokenAmount);
@@ -179,7 +188,7 @@ contract IDOImpl is ReentrancyGuard, Initializable {
         onlyAdmin
     {
         require(
-            _lpAmount <= lpToken.balanceOf(address(this)),
+            _lpAmount <= token.balanceOf(address(this)),
             "not enough token 0"
         );
         require(
@@ -190,7 +199,7 @@ contract IDOImpl is ReentrancyGuard, Initializable {
             offeringToken.safeTransfer(address(msg.sender), _offerAmount);
         }
         if (_lpAmount > 0) {
-            lpToken.safeTransfer(address(msg.sender), _lpAmount);
+            token.safeTransfer(address(msg.sender), _lpAmount);
         }
     }
 }
