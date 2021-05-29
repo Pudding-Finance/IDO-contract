@@ -1,4 +1,3 @@
-const MockORC20 = artifacts.require("MockORC20");
 const IDOImpl = artifacts.require("IDOImpl");
 const IDOUpgradeProxy = artifacts.require("IDOUpgradeProxy");
 
@@ -8,39 +7,32 @@ const web3 = new Web3(
   new Web3.providers.HttpProvider("https://bsc-dataseed.binance.org")
 );
 
-const CURRENT_BLOCK_NUMBER = 693758;
-const CURRENT_BLOCK_TIME = "May-19-2021 14:30:37";
+const CURRENT_BLOCK_NUMBER = 835495;
+const CURRENT_BLOCK_TIME = "May-29-2021 12:52:40";
 
 module.exports = async function(deployer, a) {
-  let beginTime = "2021-05-19T20:00:00+08:00";
-  let endTime = "2021-05-19T22:00:00+08:00";
-  let offeringAmount = 20000;
-  let raisingUSD = 4000;
-  let raisingTokenPrice = 1;
-  let raisingAmount = formatDecimals(raisingUSD / raisingTokenPrice, 10);
+  let startTime ='2021-05-29T18:00:00+08:00';
+  let endTime =  '2021-05-29T20:00:00+08:00';
+
+  // let offeringAmount = 4;
+  // let raisingUSD = 4;
+  let offeringAmount = 320000;
+  let raisingUSD = 40000;
+  let ticketTokenPrice = 1;
+  let tickeTokenDecimals = 6;
   let minAmount = 1;
+  let raisingAmount = formatDecimals(raisingUSD / ticketTokenPrice, 10);
+  // CONFIG: tickerToken usdt
+  const ticketToken = '0xD16bAbe52980554520F6Da505dF4d1b124c815a7';
+  // CONFIG: offeringToken YUNGE
+  const offeringToken = "0x07f823D3d011f7C612084f04D025F4a026F76afd";
 
-  offeringAmount = numToHex(offeringAmount * Math.pow(10, 18));
-  raisingAmount = numToHex(raisingAmount * Math.pow(10, 18));
-  minAmount = numToHex(minAmount * Math.pow(10, 18));
-
-  await deployer.deploy(
-    MockORC20,
-    "PUD LP Token",
-    "PUD-LP",
-    numToHex(10000 * 1e18)
-  );
-  const ticketToken = await MockORC20.deployed();
-  await deployer.deploy(MockORC20, "Yunge Protocol", "YUNGE", offeringAmount);
-  const issuedToken = await MockORC20.deployed();
-
-  const token = ticketToken.address;
-  const offeringToken = issuedToken.address;
   const proxyAdmin = "0x5cae3a434C9501fbe0a2E0b739A45F54fCF3Daf7";
-  const ifoAdmin = "0x5cae3a434C9501fbe0a2E0b739A45F54fCF3Daf7";
+  const ifoAdmin = "0x223Ad4931d272e1f9Fec562A47e34bC387e85c9F";
   const userProfileAddress = "0xC9866C73518e4696fa7Fc50f68462ADa0EEEDC0f"
+
   const startBlock = getBlockFromTime(
-    beginTime,
+    startTime,
     CURRENT_BLOCK_NUMBER,
     CURRENT_BLOCK_TIME
   );
@@ -49,7 +41,10 @@ module.exports = async function(deployer, a) {
     CURRENT_BLOCK_NUMBER,
     CURRENT_BLOCK_TIME
   );
-  const adminAddress = ifoAdmin;
+
+  offeringAmount = numToHex(offeringAmount * Math.pow(10, 18));
+  raisingAmount = numToHex(raisingAmount * Math.pow(10, tickeTokenDecimals));
+  minAmount = numToHex(minAmount * Math.pow(10, tickeTokenDecimals));
 
   console.log("startBlock:", startBlock);
   console.log("endBlock:", endBlock);
@@ -96,6 +91,11 @@ module.exports = async function(deployer, a) {
           type: "uint256"
         },
         {
+          internalType: "contract UserProfile",
+          name: "_userProfile",
+          type: "address"
+        },
+        {
           internalType: "address",
           name: "_adminAddress",
           type: "address"
@@ -107,7 +107,7 @@ module.exports = async function(deployer, a) {
       type: "function"
     },
     [
-      token,
+      ticketToken,
       offeringToken,
       startBlock,
       endBlock,
@@ -115,7 +115,7 @@ module.exports = async function(deployer, a) {
       raisingAmount,
       minAmount,
       userProfileAddress,
-      adminAddress
+      ifoAdmin
     ]
   );
 
@@ -125,6 +125,4 @@ module.exports = async function(deployer, a) {
     ido.address,
     abiEncodeData
   );
-
-  await issuedToken.transfer(IDOUpgradeProxy.address, offeringAmount);
 };
